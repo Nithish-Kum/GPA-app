@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPA & CGPA Calculator</title>
+    <meta name="description" content="Calculate your GPA and CGPA easily on your mobile device.">
+    <meta name="theme-color" content="#1e40af">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.png">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        input, button {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #d1d5db;
+            padding: 12px;
+            text-align: center;
+        }
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        button {
+            padding: 12px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+        }
+        .nav-button {
+            flex: 1;
+            padding: 10px;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-blue-600 text-white p-4 shadow-md">
+        <h1 class="text-2xl font-bold text-center">GPA & CGPA Calculator</h1>
+        <div class="flex mt-4 space-x-2">
+            <button id="showGPA" class="nav-button bg-blue-800 hover:bg-blue-700 text-white rounded">GPA Calculator</button>
+            <button id="showCGPA" class="nav-button bg-blue-500 hover:bg-blue-700 text-white rounded">CGPA Calculator</button>
+        </div>
+    </header>
+
+    <main class="flex-grow p-4">
+        <!-- GPA Calculator Section -->
+        <section id="gpaSection" class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">GPA Calculator</h2>
+            <div class="mb-4">
+                <label for="numSubjects" class="block text-lg mb-2">Number of Subjects:</label>
+                <input type="number" id="numSubjects" min="1" class="w-full p-2 border rounded" onchange="generateFields()">
+            </div>
+            <table id="coursetable" class="mb-4">
+                <tr>
+                    <th>Course</th>
+                    <th>Grade</th>
+                    <th>Credits</th>
+                </tr>
+            </table>
+            <button onclick="calculateGPA()" class="w-full bg-blue-600 text-white hover:bg-blue-700">Calculate GPA</button>
+            <h3 id="result" class="mt-4 text-lg"></h3>
+        </section>
+
+        <!-- CGPA Calculator Section -->
+        <section id="cgpaSection" class="bg-white rounded-lg shadow p-6 hidden">
+            <h2 class="text-xl font-semibold mb-4">CGPA Calculator</h2>
+            <div class="mb-4">
+                <label for="numSemesters" class="block text-lg mb-2">Number of Semesters:</label>
+                <input type="number" id="numSemesters" min="1" class="w-full p-2 border rounded" onchange="generateSemesterFields()">
+            </div>
+            <table id="semestertable" class="mb-4">
+                <tr>
+                    <th>Semester GPA</th>
+                    <th>Total Credits</th>
+                </tr>
+            </table>
+            <button onclick="calculateCGPA()" class="w-full bg-blue-600 text-white hover:bg-blue-700">Calculate CGPA</button>
+            <h3 id="cgpaResult" class="mt-4 text-lg"></h3>
+        </section>
+    </main>
+
+    <footer class="bg-gray-200 p-4 text-center text-sm text-gray-600">
+        &copy; 2025 GPA & CGPA Calculator
+    </footer>
+
+    <script>
+        // Navigation between sections
+        document.getElementById('showGPA').addEventListener('click', () => {
+            document.getElementById('gpaSection').classList.remove('hidden');
+            document.getElementById('cgpaSection').classList.add('hidden');
+            document.getElementById('showGPA').classList.add('bg-blue-800');
+            document.getElementById('showCGPA').classList.remove('bg-blue-800');
+            document.getElementById('showCGPA').classList.add('bg-blue-500');
+        });
+
+        document.getElementById('showCGPA').addEventListener('click', () => {
+            document.getElementById('cgpaSection').classList.remove('hidden');
+            document.getElementById('gpaSection').classList.add('hidden');
+            document.getElementById('showCGPA').classList.add('bg-blue-800');
+            document.getElementById('showGPA').classList.remove('bg-blue-800');
+            document.getElementById('showGPA').classList.add('bg-blue-500');
+        });
+
+        // GPA Calculator Functions
+        function generateFields() {
+            let numSubjects = document.getElementById("numSubjects").value;
+            let table = document.getElementById("coursetable");
+            table.innerHTML = `<tr><th>Course</th><th>Grade</th><th>Credits</th></tr>`;
+            for (let i = 0; i < numSubjects; i++) {
+                let row = table.insertRow(-1);
+                row.innerHTML = `
+                    <td><input type="text" placeholder="Course Name" class="w-full p-2 border rounded"></td>
+                    <td><input type="text" placeholder="Grade (O, A+, A...)" class="grade w-full p-2 border rounded"></td>
+                    <td><input type="number" step="0.1" placeholder="Credits" class="credits w-full p-2 border rounded"></td>
+                `;
+            }
+        }
+
+        function calculateGPA() {
+            let grades = document.getElementsByClassName("grade");
+            let credits = document.getElementsByClassName("credits");
+            let totalCredits = 0;
+            let totalPoints = 0;
+            let gradeMap = { 'O': 10, 'A+': 9, 'A': 8, 'B+': 7, 'B': 6, 'C': 5 };
+
+            for (let i = 0; i < grades.length; i++) {
+                let grade = grades[i].value.toUpperCase();
+                let credit = parseFloat(credits[i].value);
+                if (gradeMap[grade] !== undefined && credit > 0) {
+                    totalCredits += credit;
+                    totalPoints += gradeMap[grade] * credit;
+                }
+            }
+
+            let gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "Invalid Input";
+            document.getElementById("result").innerText = "Your GPA: " + gpa;
+        }
+
+        // CGPA Calculator Functions
+        function generateSemesterFields() {
+            let numSemesters = document.getElementById("numSemesters").value;
+            let table = document.getElementById("semestertable");
+            table.innerHTML = `<tr><th>Semester GPA</th><th>Total Credits</th></tr>`;
+            for (let i = 0; i < numSemesters; i++) {
+                let row = table.insertRow(-1);
+                row.innerHTML = `
+                    <td><input type="number" step="0.01" placeholder="GPA" class="sgpa w-full p-2 border rounded"></td>
+                    <td><input type="number" step="0.1" placeholder="Credits" class="totalCredits w-full p-2 border rounded"></td>
+                `;
+            }
+        }
+
+        function calculateCGPA() {
+            let sgpas = document.getElementsByClassName("sgpa");
+            let credits = document.getElementsByClassName("totalCredits");
+            let totalCredits = 0;
+            let totalPoints = 0;
+
+            for (let i = 0; i < sgpas.length; i++) {
+                let gpa = parseFloat(sgpas[i].value);
+                let credit = parseFloat(credits[i].value);
+                if (!isNaN(gpa) && !isNaN(credit) && credit > 0) {
+                    totalCredits += credit;
+                    totalPoints += gpa * credit;
+                }
+            }
+
+            let cgpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "Invalid Input";
+            document.getElementById("cgpaResult").innerText = "Your CGPA: " + cgpa;
+        }
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('Service Worker registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
